@@ -1,0 +1,24 @@
+{
+  "name": "aws-lambda-image-editor",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/shtrihstr/aws-lambda-image-editor.git"
+    },
+  "dependencies": {
+    "gm": "^1.21.1",
+    "imagemagick": "^0.1.3",
+    "imagemin": "^4.0.0",
+    "imagemin-jpegoptim": "^4.1.0",
+    "imagemin-pngquant": "^4.2.0",
+    "mime": "^1.3.4",
+    "node-lambda": "0.1.5"
+  },
+  "scripts": {
+    "setup": "node-lambda setup",
+    "run": "node-lambda run",
+    "deploy": "node-lambda deploy"
+  }
+}

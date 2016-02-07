@@ -1,0 +1,1 @@
+### AWS Lambda image processor for WordPress plugin [AWS Lambda Image Editor](https://github.com/shtrihstr/wp-image-editor-aws-lambda)
