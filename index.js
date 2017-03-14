@@ -19,7 +19,7 @@ function do_operations(image, operations) {
             }
 
             case 'crop': {
-                image.crop(operation.src_x, operation.src_y, operation.src_width, operation.src_height);
+                image.crop(operation.src_width, operation.src_height, operation.src_x, operation.src_y);
                 if(operation.destination_width || operation.destination_height) {
                     if(!operation.destination_width) {
                         operation.destination_width = operation.src_width;
@@ -86,17 +86,22 @@ exports.handler = function( event, context ) {
                 .run(function (err, files) {
                     if (err) throw err;
 
-                    s3.putObject({
-                        Bucket: bucket,
-                        Key: new_filename,
-                        Body: files[0].contents,
-                        //ACL: acl, todo: clone acl
-                        ContentType: mime.lookup(new_filename),
-                        Metadata: meta
-                    }, function(err, data) {
-                        if (err) throw err;
-                        context.done();
-                    });
+                    if(event.return === 'stream') {
+                        context.succeed(new Buffer(files[0].contents).toString('base64'));
+                    }
+                    else {
+                        s3.putObject({
+                            Bucket: bucket,
+                            Key: new_filename,
+                            Body: files[0].contents,
+                            //ACL: acl, todo: clone acl
+                            ContentType: mime.lookup(new_filename),
+                            Metadata: meta
+                        }, function(err, data) {
+                            if (err) throw err;
+                            context.done();
+                        });
+                    }
 
                 });
         });
@@ -104,4 +109,3 @@ exports.handler = function( event, context ) {
     });
 
 };
-
