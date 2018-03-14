@@ -84,7 +84,9 @@ exports.handler = function( event, context ) {
         do_operations(image, operations);
 
         image.toBuffer( new_filename, function(err, buffer) {
-            if (err) throw err;
+            if (err) {
+                throw err;
+            }
 
             imagemin.buffer(buffer, {
                 plugins: [
@@ -117,7 +119,10 @@ exports.handler = function( event, context ) {
                         ContentType: mime.getType(new_filename),
                         Metadata: meta
                     }, function(err) {
-                        if (err) throw err;
+                        if (err) {
+                            throw err;
+                        }
+
                         context.done();
                     });
                 }
