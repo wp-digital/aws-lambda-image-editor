@@ -1,12 +1,11 @@
-let gm = require('gm').subClass({
-    imageMagick: true
-});
 let Sharp = require('sharp');
 let imagemin = require('imagemin');
 let imageminJpegoptim = require('imagemin-jpegoptim');
 let imageminPngquant = require('imagemin-pngquant');
-let imageminGifsicle = require('imagemin-gifsicle');
 let imageminSvgo = require('imagemin-svgo');
+let gifsicle = require('gifsicle');
+
+let execBuffer = require('exec-buffer');
 
 let aws = require('aws-sdk');
 let s3 = new aws.S3({
@@ -20,7 +19,7 @@ let promisify = require('es6-promisify').promisify;
 let getObject = promisify(s3.getObject.bind(s3));
 let putObject = promisify(s3.putObject.bind(s3));
 
-let do_operations = (image, operations, callback) => {
+let doOperations = (image, operations, callback) => {
     for (let operation of operations) {
         switch (operation.action) {
             case 'resize': {
@@ -55,11 +54,11 @@ let do_operations = (image, operations, callback) => {
 
             case 'flip': {
                 if (operation.horizontal) {
-                    image.flip()
+                    image.flip();
                 }
 
                 if (operation.vertical) {
-                    image.flop()
+                    image.flop();
                 }
 
                 break;
@@ -72,17 +71,19 @@ let do_operations = (image, operations, callback) => {
     }
 };
 
-let do_operations_gm = (image, operations, callback) => {
+let getGifsicleArgs = (operations, callback) => {
+    let args = ['--no-warnings', '--no-app-extensions', '--careful'];
+
     for (let operation of operations) {
         switch (operation.action) {
             case 'resize': {
-                image.scale(operation.width, operation.height);
+                args.push(`--resize=${operation.width}x${operation.height}`);
 
                 break;
             }
 
             case 'crop': {
-                image.crop(operation.src_width, operation.src_height, operation.src_x, operation.src_y);
+                args.push(`--crop=${operation.src_x},${operation.src_y}+${operation.src_width}x${operation.src_height}`);
 
                 if (operation.destination_width || operation.destination_height) {
                     if (!operation.destination_width) {
@@ -93,25 +94,29 @@ let do_operations_gm = (image, operations, callback) => {
                         operation.destination_height = operation.src_height;
                     }
 
-                    image.scale(operation.destination_width, operation.destination_height);
+                    args.push(`--resize=${operation.destination_width}x${operation.destination_height}`);
                 }
 
                 break;
             }
 
             case 'rotate': {
-                image.rotate('none', 360 - operation.angle);
+                let angle = Math.round(operation.angle / 90) * 90 % 360;
+
+                if (angle) {
+                    args.push(`--rotate-${angle > 0 ? 360 - angle : Math.abs(angle)}`);
+                }
 
                 break;
             }
 
             case 'flip': {
                 if (operation.horizontal) {
-                    image.flip()
+                    args.push('--flip-vertical');
                 }
 
                 if (operation.vertical) {
-                    image.flop()
+                    args.push('--flip-horizontal');
                 }
 
                 break;
@@ -122,6 +127,8 @@ let do_operations_gm = (image, operations, callback) => {
             }
         }
     }
+
+    return [...args, '--output', execBuffer.output, execBuffer.input];
 };
 
 exports.handler = ({
@@ -141,16 +148,15 @@ exports.handler = ({
         Metadata: meta
     }) => {
         if (mime.getType(new_filename) === 'image/gif') {
-            let image = gm(new Buffer(body, 'binary'), filename);
-
-            image.quality(quality);
-            do_operations_gm(image, operations);
-
-            return Promise.all([promisify(image.toBuffer.bind(image))(new_filename), acl, meta]);
+            return Promise.all([execBuffer({
+                input: body,
+                bin: gifsicle,
+                args: getGifsicleArgs(operations, callback)
+            }), acl, meta]);
         } else {
             let image = Sharp(body);
 
-            do_operations(image, operations, callback);
+            doOperations(image, operations, callback);
 
             return Promise.all([promisify(image.toBuffer.bind(image))(), acl, meta]);
         }
@@ -160,9 +166,6 @@ exports.handler = ({
             imageminJpegoptim({
                 progressive: true,
                 max: quality
-            }),
-            imageminGifsicle({
-                interlaced: true
             }),
             imageminPngquant({
                 quality: (quality - 10) + '-' + quality,
