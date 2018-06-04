@@ -29,7 +29,12 @@ let doOperations = (image, operations, callback) => {
             }
 
             case 'crop': {
-                image.crop(operation.src_width, operation.src_height, operation.src_x, operation.src_y);
+                image.extract({
+                    left: operation.src_x,
+                    top: operation.src_y,
+                    width: operation.src_width,
+                    height: operation.src_height
+                });
 
                 if (operation.destination_width || operation.destination_height) {
                     if (!operation.destination_width) {
