@@ -173,7 +173,7 @@ exports.handler = ({
                 max: quality
             }),
             imageminPngquant({
-                quality: [(quality - 10), quality],
+                quality: [(quality - 10)/100, quality/100],
                 speed: 4
             }),
             imageminSvgo({
