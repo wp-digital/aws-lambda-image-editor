@@ -152,7 +152,6 @@ exports.handler = ({
         Body: body,
         Metadata: meta
     }) => {
-        console.log(acl, body, meta);
         if (mime.getType(new_filename) === 'image/gif') {
             return Promise.all([execBuffer({
                 input: body,
