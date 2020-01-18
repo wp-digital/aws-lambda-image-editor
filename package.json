@@ -8,7 +8,7 @@
     "url": "git@github.com:redink-no/aws-lambda-image-editor.git"
   },
   "dependencies": {
-    "es6-promisify": "^6.0.1",
+    "es6-promisify": "^6.0.2",
     "exec-buffer": "^3.2.0",
     "gifsicle": "^4.0.1",
     "imagemin": "^6.1.0",
