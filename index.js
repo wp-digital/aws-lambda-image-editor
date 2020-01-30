@@ -23,29 +23,35 @@ let doOperations = (image, operations, callback) => {
     for (let operation of operations) {
         switch (operation.action) {
             case 'resize': {
-                image.resize(operation.width, operation.height);
+                image.resize(
+                    parseInt(operation.width, 10),
+                    parseInt(operation.height, 10)
+                );
 
                 break;
             }
 
             case 'crop': {
                 image.extract({
-                    left: operation.src_x,
-                    top: operation.src_y,
-                    width: operation.src_width,
-                    height: operation.src_height
+                    left: parseInt(operation.src_x, 10),
+                    top: parseInt(operation.src_y, 10),
+                    width: parseInt(operation.src_width, 10),
+                    height: parseInt(operation.src_height, 10)
                 });
 
                 if (operation.destination_width || operation.destination_height) {
                     if (!operation.destination_width) {
-                        operation.destination_width = operation.src_width;
+                        operation.destination_width = parseInt(operation.src_width, 10);
                     }
 
                     if (!operation.destination_height) {
-                        operation.destination_height = operation.src_height;
+                        operation.destination_height = parseInt(operation.src_height, 10);
                     }
 
-                    image.resize(operation.destination_width, operation.destination_height);
+                    image.resize(
+                        parseInt(operation.destination_width, 10),
+                        parseInt(operation.destination_height, 10)
+                    );
                 }
 
                 break;
@@ -82,24 +88,30 @@ let getGifsicleArgs = (operations, callback) => {
     for (let operation of operations) {
         switch (operation.action) {
             case 'resize': {
-                args.push(`--resize=${operation.width}x${operation.height}`);
+                args.push(
+                    `--resize=${parseInt(operation.width, 10)}x${parseInt(operation.height, 10)}`
+                );
 
                 break;
             }
 
             case 'crop': {
-                args.push(`--crop=${operation.src_x},${operation.src_y}+${operation.src_width}x${operation.src_height}`);
+                args.push(
+                    `--crop=${parseInt(operation.src_x, 10)},${parseInt(operation.src_y, 10)}+${parseInt(operation.src_width, 10)}x${parseInt(operation.src_height, 10)}`
+                );
 
                 if (operation.destination_width || operation.destination_height) {
                     if (!operation.destination_width) {
-                        operation.destination_width = operation.src_width;
+                        operation.destination_width = parseInt(operation.src_width, 10);
                     }
 
                     if (!operation.destination_height) {
-                        operation.destination_height = operation.src_height;
+                        operation.destination_height = parseInt(operation.src_height, 10);
                     }
 
-                    args.push(`--resize=${operation.destination_width}x${operation.destination_height}`);
+                    args.push(
+                        `--resize=${parseInt(operation.destination_width, 10)}x${parseInt(operation.destination_height, 10)}`
+                    );
                 }
 
                 break;
