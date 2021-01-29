@@ -15,3 +15,4 @@ context.json
 .DS_Store
 .idea
 output
+debug.js

@@ -1,26 +1,24 @@
-let Sharp = require('sharp');
-let imagemin = require('imagemin');
-let imageminJpegoptim = require('imagemin-jpegoptim');
-let imageminPngquant = require('imagemin-pngquant');
-let imageminSvgo = require('imagemin-svgo');
-let gifsicle = require('gifsicle');
-
-let execBuffer = require('exec-buffer');
-
-let aws = require('aws-sdk');
-let s3 = new aws.S3({
+const Sharp = require('sharp');
+const imagemin = require('imagemin');
+const imageminJpegoptim = require('imagemin-jpegoptim');
+const imageminPngquant = require('imagemin-pngquant');
+const imageminSvgo = require('imagemin-svgo');
+const gifsicle = require('gifsicle');
+const exifr = require('exifr');
+const execBuffer = require('exec-buffer');
+const aws = require('aws-sdk');
+const s3 = new aws.S3({
     apiVersion: '2006-03-01'
 });
+const mime = require('mime');
+const { promisify } = require('es6-promisify');
+const has = require('lodash.has');
 
-let mime = require('mime');
+const getObject = promisify(s3.getObject.bind(s3));
+const putObject = promisify(s3.putObject.bind(s3));
 
-let promisify = require('es6-promisify').promisify;
-
-let getObject = promisify(s3.getObject.bind(s3));
-let putObject = promisify(s3.putObject.bind(s3));
-
-let doOperations = (image, operations, callback) => {
-    for (let operation of operations) {
+const doOperations = (image, operations, callback) => {
+    for (const operation of operations) {
         switch (operation.action) {
             case 'resize': {
                 image.resize(
@@ -82,10 +80,10 @@ let doOperations = (image, operations, callback) => {
     }
 };
 
-let getGifsicleArgs = (operations, callback) => {
-    let args = ['--no-warnings', '--no-app-extensions', '--careful'];
+const getGifsicleArgs = (operations, callback) => {
+    const args = ['--no-warnings', '--no-app-extensions', '--careful'];
 
-    for (let operation of operations) {
+    for (const operation of operations) {
         switch (operation.action) {
             case 'resize': {
                 args.push(
@@ -118,7 +116,7 @@ let getGifsicleArgs = (operations, callback) => {
             }
 
             case 'rotate': {
-                let angle = Math.round(operation.angle / 90) * 90 % 360;
+                const angle = Math.round(operation.angle / 90) * 90 % 360;
 
                 if (angle) {
                     args.push(`--rotate-${angle > 0 ? 360 - angle : Math.abs(angle)}`);
@@ -148,54 +146,176 @@ let getGifsicleArgs = (operations, callback) => {
     return [...args, '--output', execBuffer.output, execBuffer.input];
 };
 
+const prepareMeta = value => {
+    // Taken from wp_read_image_metadata.
+    const meta = {
+        aperture: '0',
+        credit: '',
+        camera: '',
+        caption: '',
+        created: '',
+        copyright: '',
+        focal_length: '0',
+        iso: '0',
+        shutter_speed: '0',
+        title: '',
+        orientation: '0',
+        keywords: '',
+    };
+
+    if (has(value, 'ApertureValue')) {
+        meta.aperture = value.ApertureValue;
+    } else if (has(value, 'FNumber')) {
+        meta.aperture = value.FNumber;
+    }
+
+    if (has(value, 'Credit')) {
+        meta.credit = value.Credit;
+    } else if (has(value, 'Artist')) {
+        meta.credit = value.Artist;
+    } else if (has(value, 'XPAuthor')) {
+        meta.credit = value.XPAuthor;
+    }
+
+    if (has(value, 'Model')) {
+        meta.camera = value.Model;
+    }
+
+    if (has(value, 'Caption')) {
+        meta.caption = value.Caption;
+    } else if (has(value, 'ImageDescription')) {
+        meta.caption = value.ImageDescription;
+    } else if (has(value, 'UserComment')) {
+        meta.caption = value.UserComment;
+    } else if (has(value, 'XPComment')) {
+        meta.caption = value.XPComment;
+    }
+
+    if (has(value, 'DateCreated')) {
+        meta.created = value.DateCreated;
+
+        if (has(value, 'TimeCreated')) {
+            meta.created += ' ' + value.TimeCreated;
+        }
+    } else if (has(value, 'DateTimeOriginal')) {
+        meta.created = value.DateTimeOriginal.getTime();
+    } else if (has(value, 'CreateDate')) {
+        meta.created = value.CreateDate;
+    }
+
+    if (has(value, 'CopyrightNotice')) {
+        meta.copyright = value.CopyrightNotice;
+    } else if (has(value, 'Copyright')) {
+        meta.copyright = value.Copyright
+    }
+
+    if (has(value, 'FocalLength')) {
+        meta.focal_length = value.FocalLength;
+    }
+
+    if (has(value, 'ISO')) {
+        meta.iso = value.ISO;
+    }
+
+    if (has(value, 'ExposureTime')) {
+        meta.shutter_speed = value.ExposureTime;
+    }
+
+    if (has(value, 'Headline')) {
+        meta.title = value.Headline;
+    } else if (has(value, 'Caption') && value.Caption < 80) {
+        meta.title = value.Caption;
+    } else if (has(value, 'ImageDescription') && value.ImageDescription < 80) {
+        meta.title = value.ImageDescription;
+    }
+
+    if (has(value, 'ImageOrientation')) {
+        meta.orientation = value.ImageOrientation;
+    } else if (has(value, 'Orientation')) {
+        meta.orientation = value.Orientation;
+    }
+
+    if (has(value, 'Keywords')) {
+        meta.keywords = value.Keywords;
+    } else if (has(value, 'XPKeywords')) {
+        meta.keywords = value.XPKeywords;
+    }
+
+    return Object.keys(meta)
+        .reduce((formatted, key) => ({
+            ...formatted,
+            [key]: '' + meta[key],
+        }), {});
+};
+
 exports.handler = ({
     bucket,
     filename,
     new_filename,
     quality = 80,
     operations = [],
-    'return': output
-}, context, callback) => getObject({
-    Bucket: bucket,
-    Key: filename
-}).catch(err => callback(err))
+    'return': output,
+}, context, callback) =>
+    getObject({
+        Bucket: bucket,
+        Key: filename,
+    })
+    .catch(err => callback(err))
     .then(({
         ACL: acl,
         Body: body,
-        Metadata: meta
+        Metadata: meta,
     }) => {
         if (mime.getType(new_filename) === 'image/gif') {
-            return Promise.all([execBuffer({
-                input: body,
-                bin: gifsicle,
-                args: getGifsicleArgs(operations, callback)
-            }), acl, meta]);
+            return Promise.allSettled([
+                execBuffer({
+                    input: body,
+                    bin: gifsicle,
+                    args: getGifsicleArgs(operations, callback),
+                }),
+                acl,
+                meta,
+                Promise.reject('Sorry, it\'s not possible to parse GIF.'),
+            ]);
         } else {
-            let image = Sharp(body);
+            const image = Sharp(body);
 
             doOperations(image, operations, callback);
 
-            return Promise.all([promisify(image.toBuffer.bind(image))(), acl, meta]);
+            return Promise.allSettled([
+                promisify(image.toBuffer.bind(image))(),
+                acl,
+                meta,
+                exifr.parse(body, {
+                    iptc: true,
+                    xmp: true,
+                }),
+            ]);
         }
     })
-    .then(([buffer, acl, meta]) => Promise.all([imagemin.buffer(buffer, {
-        plugins: [
-            imageminJpegoptim({
-                progressive: true,
-                max: quality
-            }),
-            imageminPngquant({
-                quality: [(quality - 10)/100, quality/100],
-                speed: 4
-            }),
-            imageminSvgo({
-                plugins: [{
-                    removeViewBox: false
-                }]
-            })
-        ]
-    }), acl, meta]))
-    .then(([body, acl, meta]) => {
+    .then(([buffer, acl, meta, parsed]) => Promise.all([
+        imagemin.buffer(buffer.value, {
+            plugins: [
+                imageminJpegoptim({
+                    progressive: true,
+                    max: quality,
+                }),
+                imageminPngquant({
+                    quality: [(quality - 10)/100, quality/100],
+                    speed: 4,
+                }),
+                imageminSvgo({
+                    plugins: [{
+                        removeViewBox: false,
+                    }],
+                }),
+            ],
+        }),
+        acl.value,
+        meta.value,
+        parsed.status === 'fulfilled' ? parsed.value : {},
+    ]))
+    .then(([body, acl, meta, parsed]) => {
         if (output === 'stream') {
             context.succeed(body.toString('base64'));
         } else {
@@ -205,7 +325,10 @@ exports.handler = ({
                 Body: body,
                 ACL: acl,
                 ContentType: mime.getType(new_filename),
-                Metadata: meta
+                Metadata: {
+                    ...meta,
+                    ...prepareMeta(parsed),
+                },
             });
         }
     })
