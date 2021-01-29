@@ -23,7 +23,7 @@ jobs:
         run: npm install
 
       - name: Build
-        run: zip --junk-paths node_modules *.js*
+        run: zip -r lambda-function.zip ./*.js*
 
       - name: Create Release
         id: create_release
