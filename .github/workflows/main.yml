@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -21,6 +21,8 @@ jobs:
 
       - name: Install NPM dependencies
         run: npm install
+      - run: rm -rf node_modules/sharp
+      - run: SHARP_IGNORE_GLOBAL_LIBVIPS=1 npm install --arch=x64 --platform=linux sharp
 
       - name: Build
         run: zip -r lambda-function.zip node_modules *.js*
