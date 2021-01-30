@@ -1,7 +1,7 @@
 const Sharp = require('sharp');
 const imagemin = require('imagemin');
-const imageminMozjpeg = require('imagemin-mozjpeg');
-const imageminPngquant = require('imagemin-pngquant');
+// const imageminJpegoptim = require('imagemin-jpegoptim');
+// const imageminPngquant = require('imagemin-pngquant');
 const imageminSvgo = require('imagemin-svgo');
 const gifsicle = require('gifsicle');
 const exifr = require('exifr');
@@ -13,6 +13,11 @@ const s3 = new aws.S3({
 const mime = require('mime');
 const { promisify } = require('es6-promisify');
 const has = require('lodash.has');
+
+const allSettled = require('promise.allsettled');
+
+const imageminJpegoptim = require('./src/jpegoptim');
+const imageminPngquant = require('./src/pngquant');
 
 const getObject = promisify(s3.getObject.bind(s3));
 const putObject = promisify(s3.putObject.bind(s3));
@@ -267,7 +272,7 @@ exports.handler = ({
         Metadata: meta,
     }) => {
         if (mime.getType(new_filename) === 'image/gif') {
-            return Promise.allSettled([
+            return allSettled([
                 execBuffer({
                     input: body,
                     bin: gifsicle,
@@ -282,7 +287,7 @@ exports.handler = ({
 
             doOperations(image, operations, callback);
 
-            return Promise.allSettled([
+            return allSettled([
                 promisify(image.toBuffer.bind(image))(),
                 acl,
                 meta,
@@ -296,9 +301,9 @@ exports.handler = ({
     .then(([buffer, acl, meta, parsed]) => Promise.all([
         imagemin.buffer(buffer.value, {
             plugins: [
-                imageminMozjpeg({
+                imageminJpegoptim({
                     progressive: true,
-                    quality,
+                    max: quality,
                 }),
                 imageminPngquant({
                     quality: [(quality - 10)/100, quality/100],
