@@ -1,6 +1,6 @@
 const Sharp = require('sharp');
 const imagemin = require('imagemin');
-const imageminJpegoptim = require('imagemin-jpegoptim');
+const imageminMozjpeg = require('imagemin-mozjpeg');
 const imageminPngquant = require('imagemin-pngquant');
 const imageminSvgo = require('imagemin-svgo');
 const gifsicle = require('gifsicle');
@@ -296,9 +296,9 @@ exports.handler = ({
     .then(([buffer, acl, meta, parsed]) => Promise.all([
         imagemin.buffer(buffer.value, {
             plugins: [
-                imageminJpegoptim({
+                imageminMozjpeg({
                     progressive: true,
-                    max: quality,
+                    quality,
                 }),
                 imageminPngquant({
                     quality: [(quality - 10)/100, quality/100],
