@@ -2,7 +2,7 @@
   "name": "aws-lambda-image-editor",
   "version": "0.2.0",
   "description": "",
-  "main": "index.js",
+  "main": "handler.js",
   "repository": {
     "type": "git",
     "url": "git@github.com:innocode-digital/aws-lambda-image-editor.git"
@@ -25,12 +25,6 @@
     "promise.allsettled": "^1.0.4",
     "sharp": "^0.27.1"
   },
-  "scripts": {
-    "setup": "node-lambda setup",
-    "run": "node-lambda run",
-    "deploy": "node-lambda deploy"
-  },
-  "devDependencies": {
-    "node-lambda": "^0.17.0"
-  }
+  "scripts": {},
+  "devDependencies": {}
 }
