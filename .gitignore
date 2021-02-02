@@ -1,17 +1,23 @@
+# package directories
+node_modules
+jspm_packages
+
+# Serverless directories
+.serverless
+
+# dotenv environment variables file
+.env
+
+# Logs
 logs
 *.log
-pids
-*.pid
-*.seed
-lib-cov
-coverage
-.grunt
-build/Release
-node_modules
-.lock-wscript
-.env
-event.json
-context.json
+
+# Cache
+.cache
+
+# macOS
 .DS_Store
+
+# IDE
 .idea
-output
+.vscode
