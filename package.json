@@ -14,6 +14,7 @@
     "exifr": "^6.0.0",
     "gifsicle": "^5.1.0",
     "imagemin": "^7.0.1",
+    "imagemin-mozjpeg": "^9.0.0",
     "imagemin-pngquant": "^9.0.1",
     "imagemin-svgo": "^8.0.0",
     "is-jpg": "^2.0.0",
