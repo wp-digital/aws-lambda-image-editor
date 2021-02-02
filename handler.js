@@ -95,7 +95,7 @@ module.exports.imageProcessor = ({
         }),
         acl.value,
         meta.value,
-        parsed.status === 'fulfilled' ? parsed.value : {},
+        parsed.status === 'fulfilled' ? parsed.value : null,
     ]))
     .then(([body, acl, meta, parsed]) => {
         if (output === 'stream') {
@@ -107,10 +107,10 @@ module.exports.imageProcessor = ({
                 Body: body,
                 ACL: acl,
                 ContentType: mime.getType(new_filename),
-                Metadata: {
+                Metadata: parsed !== null ? {
                     ...meta,
                     ...prepareMeta(parsed),
-                },
+                } : meta,
             }).promise();
         }
     })
