@@ -3,7 +3,8 @@ name: CI
 on:
   push:
     branches:
-      - feature/exifr
+      - master
+      - dev
 
 jobs:
   build:
@@ -28,10 +29,20 @@ jobs:
           envkey_LAYER_IMAGE_MAGICK: ${{ secrets.LAYER_IMAGE_MAGICK }}
           envkey_LAYER_GRAPHICSMAGICK: ${{ secrets.LAYER_GRAPHICSMAGICK }}
 
-      - name: Deploy
+      - name: Deploy dev
+        if: github.ref == 'refs/heads/dev'
         uses: serverless/github-action@master
         with:
           args: deploy --region ${{ secrets.AWS_REGION }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Deploy production
+        if: github.ref == 'refs/heads/master'
+        uses: serverless/github-action@master
+        with:
+          args: deploy --stage production --region ${{ secrets.AWS_REGION }}
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
