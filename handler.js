@@ -11,9 +11,6 @@ const imageminMozjpeg = require('imagemin-mozjpeg');
 const imageminPngquant = require('imagemin-pngquant');
 const imageminSvgo = require('imagemin-svgo');
 
-const imageminJpegoptim = require('./src/imageminJpegoptim');
-// const imageminPngquant = require('./src/imageminPngquant');
-
 const doOperations = require('./src/doOperations');
 const getGifsicleArgs = require('./src/getGifsicleArgs');
 
@@ -42,31 +39,40 @@ module.exports.imageProcessor = ({
         Body: body,
         Metadata: meta,
     }) => {
-        if (mime.getType(new_filename) === 'image/gif') {
-            return allSettled([
-                execBuffer({
-                    input: body,
-                    bin: gifsicle,
-                    args: getGifsicleArgs(operations, callback),
-                }),
-                acl,
-                meta,
-                Promise.reject('Sorry, it\'s not possible to parse GIF.'),
-            ]);
-        } else {
-            const image = Sharp(body);
+        switch (mime.getType(new_filename)) {
+            case 'image/gif':
+                return allSettled([
+                    execBuffer({
+                        input: body,
+                        bin: gifsicle,
+                        args: getGifsicleArgs(operations, callback),
+                    }),
+                    acl,
+                    meta,
+                    Promise.reject('Sorry, it\'s not possible to parse .gif.'),
+                ]);
+            case 'image/svg+xml':
+                return allSettled([
+                    body,
+                    acl,
+                    meta,
+                    Promise.reject('Sorry, it\'s not possible to parse .svg.'),
+                ]);
+            default: {
+                const image = Sharp(body);
 
-            doOperations(image, operations, callback);
+                doOperations(image, operations, callback);
 
-            return allSettled([
-                promisify(image.toBuffer.bind(image))(),
-                acl,
-                meta,
-                exifr.parse(body, {
-                    iptc: true,
-                    xmp: true,
-                }),
-            ]);
+                return allSettled([
+                    promisify(image.toBuffer.bind(image))(),
+                    acl,
+                    meta,
+                    exifr.parse(body, {
+                        iptc: true,
+                        xmp: true,
+                    }),
+                ]);
+            }
         }
     })
     .then(([buffer, acl, meta, parsed]) => Promise.all([
