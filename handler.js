@@ -7,15 +7,14 @@ const gifsicle = require('gifsicle');
 const Sharp = require('sharp');
 const exifr = require('exifr');
 const imagemin = require('imagemin');
-const imageminJpegoptim = require('imagemin-jpegoptim');
-const imageminPngquant = require('imagemin-pngquant');
 const imageminSvgo = require('imagemin-svgo');
 
-// const imageminJpegoptim = require('./src/jpegoptim');
-// const imageminPngquant = require('./src/pngquant');
+const imageminJpegoptim = require('./src/imageminJpegoptim');
+const imageminPngquant = require('./src/imageminPngquant');
 
 const doOperations = require('./src/doOperations');
 const getGifsicleArgs = require('./src/getGifsicleArgs');
+
 const prepareMeta = require('./src/prepareMeta');
 
 const s3 = new aws.S3({
