@@ -7,10 +7,11 @@ const gifsicle = require('gifsicle');
 const Sharp = require('sharp');
 const exifr = require('exifr');
 const imagemin = require('imagemin');
+const imageminPngquant = require('imagemin-pngquant');
 const imageminSvgo = require('imagemin-svgo');
 
 const imageminJpegoptim = require('./src/imageminJpegoptim');
-const imageminPngquant = require('./src/imageminPngquant');
+// const imageminPngquant = require('./src/imageminPngquant');
 
 const doOperations = require('./src/doOperations');
 const getGifsicleArgs = require('./src/getGifsicleArgs');
