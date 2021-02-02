@@ -11,7 +11,7 @@
 #
 # Happy Coding!
 
-service: aws-lambda-image-editor
+service: image-editor
 # app and org for use with dashboard.serverless.com
 #app: your-app-name
 #org: your-org-name
@@ -56,11 +56,11 @@ package:
   exclude:
     - README.md
     - .github/**
-    - .idea/**
+    - .idea/**  
 
 functions:
   imageProcessor:
-    handler: handler.imageProcessor
+    handler: handler.processor
     layers:
       - ${env:LAYER_IMAGE_MAGICK}
       - ${env:LAYER_GRAPHICSMAGICK}

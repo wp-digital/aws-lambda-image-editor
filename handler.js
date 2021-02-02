@@ -20,11 +20,11 @@ const s3 = new aws.S3({
     apiVersion: '2006-03-01'
 });
 
-module.exports.imageProcessor = ({
+module.exports.processor = ({
     bucket,
     filename,
     new_filename,
-    quality = 80,
+    quality = 82,
     operations = [],
     'return': output,
 }, context, callback) =>
