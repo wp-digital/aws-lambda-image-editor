@@ -1,4 +1,5 @@
 'use strict';
+
 const has = require('lodash.has');
 
 module.exports = value => {

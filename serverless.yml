@@ -25,6 +25,8 @@ package:
 functions:
   processor:
     handler: handler.processor
+    timeout: 59
+    memorySize: 1536
     layers:
       - ${env:LAYER_IMAGE_MAGICK}
       - ${env:LAYER_GRAPHICSMAGICK}

@@ -1,4 +1,5 @@
 'use strict';
+
 const execBuffer = require('exec-buffer');
 
 module.exports = (operations, callback) => {
