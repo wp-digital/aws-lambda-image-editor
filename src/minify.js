@@ -11,7 +11,7 @@ const imagemin = require('imagemin');
 const imageminMozjpeg = require('imagemin-mozjpeg');
 const imageminPngquant = require('imagemin-pngquant');
 const imageminSvgo = require('imagemin-svgo');
-const imageminWebp = require('imagemin-webp');
+// const imageminWebp = require('imagemin-webp');
 
 const getGifsicleArgs = require('./getGifsicleArgs');
 const doOperations = require('./doOperations');
@@ -73,13 +73,17 @@ module.exports = async (body, operations, quality, callback) => {
         ],
     });
 
-    const withWebp = await imagemin.buffer(buffer, {
-        plugins: [
-            imageminWebp({
-                quality,
-            }),
-        ],
+    const webp = sharp(buffer).webp({
+        quality,
     });
+    // const withWebp = await imagemin.buffer(buffer, {
+    //     plugins: [
+    //         imageminWebp({
+    //             quality,
+    //         }),
+    //     ],
+    // });
+    const withWebp = await webp.toBuffer();
 
     if (withWebp.byteLength < buffer.byteLength) {
         buffer = withWebp;
