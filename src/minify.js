@@ -11,7 +11,7 @@ const imagemin = require('imagemin');
 const imageminMozjpeg = require('imagemin-mozjpeg');
 const imageminPngquant = require('imagemin-pngquant');
 const imageminSvgo = require('imagemin-svgo');
-// const imageminWebp = require('imagemin-webp');
+const isCWebpReadable = require('is-cwebp-readable');
 
 const getGifsicleArgs = require('./getGifsicleArgs');
 const doOperations = require('./doOperations');
@@ -73,21 +73,16 @@ module.exports = async (body, operations, quality, callback) => {
         ],
     });
 
-    const webp = sharp(buffer).webp({
-        quality,
-    });
-    // const withWebp = await imagemin.buffer(buffer, {
-    //     plugins: [
-    //         imageminWebp({
-    //             quality,
-    //         }),
-    //     ],
-    // });
-    const withWebp = await webp.toBuffer();
+    if (isCWebpReadable(buffer)) {
+        const webp = sharp(buffer).webp({
+            quality,
+        });
+        const withWebp = await webp.toBuffer();
 
-    if (withWebp.byteLength < buffer.byteLength) {
-        buffer = withWebp;
-        mime = 'image/webp';
+        if (withWebp.byteLength < buffer.byteLength) {
+            buffer = withWebp;
+            mime = 'image/webp';
+        }
     }
 
     return {
