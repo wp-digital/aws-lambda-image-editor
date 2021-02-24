@@ -12,6 +12,8 @@ const imageminMozjpeg = require('imagemin-mozjpeg');
 const imageminPngquant = require('imagemin-pngquant');
 const imageminSvgo = require('imagemin-svgo');
 // const imageminWebp = require('imagemin-webp');
+const fs = require('fs');
+const path = require('path');
 const isCWebpReadable = require('is-cwebp-readable');
 const { CWebp } = require('cwebp');
 
@@ -84,6 +86,13 @@ module.exports = async (body, operations, quality, callback) => {
     // });
 
     if (isCWebpReadable(buffer)) {
+        if (!fs.existsSync('/usr/local/bin/cwebp')) {
+            const RESOURCES_DIR = path.join(__dirname, 'resources');
+
+            process.env.PATH += `:${RESOURCES_DIR}`;
+            process.env.LD_LIBRARY_PATH += `:${RESOURCES_DIR}`;
+        }
+
         const webp = new CWebp(buffer);
 
         webp.quality(quality);
