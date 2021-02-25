@@ -39,17 +39,20 @@ module.exports = async (body, operations, quality, callback) => {
         default: {
             const image = sharp(body);
 
+            ({ mime } = await fileType(body));
+
             if (operations.length) {
                 doOperations(image, operations, callback);
-            } else {
-                meta = await exifr.parse(body, {
-                    iptc: true,
-                    xmp: true,
-                });
+            } else if (['image/jpeg', 'image/png'].includes(mime)) {
+                try {
+                    meta = await exifr.parse(body, {
+                        iptc: true,
+                        xmp: true,
+                    });
+                } catch {}
             }
 
             buffer = await image.toBuffer();
-            ({ mime } = await fileType(body));
 
             break;
         }
