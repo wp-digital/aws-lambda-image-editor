@@ -38,6 +38,7 @@ module.exports.processor = async ({
         body,
         operations,
         quality,
+        newFilename === filename,
         callback
     );
 

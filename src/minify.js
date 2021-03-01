@@ -13,7 +13,13 @@ const doOperations = require('./doOperations');
 const withImagemin = require('./withImagemin');
 const withWebp = require('./withWebp');
 
-module.exports = async (body, operations, quality, callback) => {
+module.exports = async (
+    body,
+    operations,
+    quality,
+    shouldParseMeta,
+    callback
+) => {
     let buffer;
     let meta = null;
     let mime;
@@ -38,9 +44,12 @@ module.exports = async (body, operations, quality, callback) => {
 
             ({ mime } = await fileType(body));
 
-            if (operations.length) {
-                doOperations(image, operations, callback);
-            } else if (['image/jpeg', 'image/png'].includes(mime)) {
+            doOperations(image, operations, callback);
+
+            if (
+                shouldParseMeta &&
+                ['image/jpeg', 'image/png'].includes(mime)
+            ) {
                 try {
                     meta = await exifr.parse(body, {
                         iptc: true,
