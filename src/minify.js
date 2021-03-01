@@ -65,7 +65,7 @@ module.exports = async (body, operations, quality, callback) => {
                 quality,
             }),
             imageminPngquant({
-                quality: [(quality - 10)/100, quality/100],
+                quality: [quality/100, 1.0],
                 speed: 4,
             }),
             imageminSvgo({
