@@ -1,6 +1,6 @@
 const aws = require('aws-sdk');
 
-const minify = require('./src/minify');
+const process = require('./src/process');
 const prepareMeta = require('./src/prepareMeta');
 
 const s3 = new aws.S3({
@@ -34,7 +34,7 @@ module.exports.processor = async ({
         return;
     }
 
-    const { buffer, meta, mime } = await minify(
+    const { buffer, meta, mime } = await process(
         body,
         operations,
         quality,
@@ -43,7 +43,7 @@ module.exports.processor = async ({
     );
 
     if (output === 'stream') {
-        context.succeed(body.toString('base64'));
+        context.succeed(buffer.toString('base64'));
 
         return;
     }

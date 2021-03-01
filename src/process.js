@@ -9,7 +9,7 @@ const sharp = require('sharp');
 const exifr = require('exifr');
 
 const getGifsicleArgs = require('./getGifsicleArgs');
-const doOperations = require('./doOperations');
+const applyOperations = require('./applyOperations');
 const withImagemin = require('./withImagemin');
 const withWebp = require('./withWebp');
 
@@ -44,7 +44,7 @@ module.exports = async (
 
             ({ mime } = await fileType(body));
 
-            doOperations(image, operations, callback);
+            applyOperations(image, operations, callback);
 
             if (
                 shouldParseMeta &&
