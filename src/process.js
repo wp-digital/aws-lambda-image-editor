@@ -5,7 +5,7 @@ const gif = require('./processors/gif');
 const svg = require('./processors/svg');
 const image = require('./processors/image');
 
-module.exports = async (body, operations, quality) => {
+module.exports = async (body, operations, quality, allowWebp) => {
     if (isGif(body)) {
         return gif(body, operations);
     }
@@ -14,5 +14,5 @@ module.exports = async (body, operations, quality) => {
         return svg(body);
     }
 
-    return image(body, operations, quality);
+    return image(body, operations, quality, allowWebp);
 };

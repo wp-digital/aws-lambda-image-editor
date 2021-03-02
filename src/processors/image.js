@@ -5,7 +5,7 @@ const applyOperations = require('../applyOperations');
 const withImagemin = require('../withImagemin');
 const withWebp = require('../withWebp');
 
-module.exports = async (body, operations, quality) => {
+module.exports = async (body, operations, quality, allowWebp) => {
     const image = sharp(body);
     let { mime } = await fileType(body);
 
@@ -13,6 +13,14 @@ module.exports = async (body, operations, quality) => {
 
     let buffer = await image.toBuffer();
     const bufferWithImagemin = await withImagemin(buffer, quality);
+
+    if (!allowWebp) {
+        return {
+            buffer: bufferWithImagemin,
+            mime,
+        };
+    }
+
     const bufferWithWebp = await withWebp(buffer, quality);
     const bufferWithImageminAndWebp = await withWebp(
         bufferWithImagemin, quality

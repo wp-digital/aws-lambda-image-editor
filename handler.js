@@ -14,6 +14,7 @@ module.exports.processor = async ({
     new_filename: newFilename,
     operations = [],
     quality = 82,
+    allow_webp: allowWebp = false,
     'return': output,
 }) => {
     const {
@@ -24,7 +25,7 @@ module.exports.processor = async ({
         Bucket: bucket,
         Key: filename,
     }).promise();
-    const { buffer, mime } = await process(body, operations, quality);
+    const { buffer, mime } = await process(body, operations, quality, allowWebp);
 
     if (output === 'stream') {
         return buffer.toString('base64');
