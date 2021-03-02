@@ -1,6 +1,7 @@
 const aws = require('aws-sdk');
 
 const process = require('./src/process');
+const processMeta = require('./src/processMeta');
 const prepareMeta = require('./src/prepareMeta');
 
 const s3 = new aws.S3({
@@ -14,57 +15,41 @@ module.exports.processor = async ({
     operations = [],
     quality = 82,
     'return': output,
-}, context, callback) => {
-    let acl;
-    let body;
-    let metadata;
-
-    try {
-        ({
-            ACL: acl,
-            Body: body,
-            Metadata: metadata,
-        } = await s3.getObject({
-            Bucket: bucket,
-            Key: filename,
-        }).promise());
-    } catch (e) {
-        callback(e);
-
-        return;
-    }
-
-    const { buffer, meta, mime } = await process(
-        body,
-        operations,
-        quality,
-        newFilename === filename,
-        callback
-    );
+}) => {
+    const {
+        ACL: acl,
+        Body: body,
+        Metadata: metadata,
+    } = await s3.getObject({
+        Bucket: bucket,
+        Key: filename,
+    }).promise();
+    const { buffer, mime } = await process(body, operations, quality);
 
     if (output === 'stream') {
-        context.succeed(buffer.toString('base64'));
-
-        return;
+        return buffer.toString('base64');
     }
 
-    try {
-        await s3.putObject({
-            ACL: acl,
-            Body: buffer,
-            Bucket: bucket,
-            ContentType: mime,
-            Key: newFilename,
-            Metadata: meta !== null ? {
+    const params = {
+        ACL: acl,
+        Body: buffer,
+        Bucket: bucket,
+        ContentType: mime,
+        Key: newFilename,
+    };
+
+    if (!operations.length) {
+        const meta = await processMeta(body);
+
+        if (meta !== null) {
+            params.Metadata = {
                 ...metadata,
                 ...prepareMeta(meta),
-            } : metadata,
-        }).promise();
-    } catch (e) {
-        callback(e);
-
-        return;
+            };
+        }
     }
 
-    context.done();
+    await s3.putObject(params).promise();
+
+    return { mime };
 };

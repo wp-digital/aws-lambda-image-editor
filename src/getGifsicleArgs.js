@@ -1,8 +1,6 @@
-'use strict';
-
 const execBuffer = require('exec-buffer');
 
-module.exports = (operations, callback) => {
+module.exports = operations => {
     const args = ['--no-warnings', '--no-app-extensions', '--careful'];
 
     for (const operation of operations) {
@@ -60,7 +58,7 @@ module.exports = (operations, callback) => {
             }
 
             default: {
-                callback(`Invalid operation action: ${operation.action}`);
+                throw new Error(`Invalid operation action: ${operation.action}`);
             }
         }
     }

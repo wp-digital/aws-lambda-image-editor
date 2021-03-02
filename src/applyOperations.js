@@ -1,6 +1,4 @@
-'use strict';
-
-module.exports = (image, operations, callback) => {
+module.exports = (image, operations) => {
     for (const operation of operations) {
         switch (operation.action) {
             case 'resize': {
@@ -57,7 +55,7 @@ module.exports = (image, operations, callback) => {
             }
 
             default: {
-                callback(`Invalid operation action: ${operation.action}`);
+                throw new Error(`Invalid operation action: ${operation.action}`);
             }
         }
     }
