@@ -1,13 +1,17 @@
 const imagemin = require('imagemin');
 const imageminSvgo = require('imagemin-svgo');
+const { extendDefaultPlugins } = require('svgo');
 
 module.exports = async (body) => {
     const buffer = await imagemin.buffer(body, {
         plugins: [
             imageminSvgo({
-                plugins: [{
-                    removeViewBox: false,
-                }],
+                plugins: extendDefaultPlugins([
+                    {
+                        name: 'removeViewBox',
+                        active: false,
+                    },
+                ]),
             }),
         ],
     });
