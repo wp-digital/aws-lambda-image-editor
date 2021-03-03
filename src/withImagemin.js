@@ -5,8 +5,8 @@ const imageminPngquant = require('imagemin-pngquant');
 module.exports = (body, quality) => imagemin.buffer(body, {
     plugins: [
         imageminMozjpeg({
-            progressive: true,
             quality,
+            sample: ['1x1'], // For better quality.
         }),
         imageminPngquant({
             strip: true,

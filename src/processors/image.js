@@ -6,36 +6,32 @@ const withImagemin = require('../withImagemin');
 const withWebp = require('../withWebp');
 
 module.exports = async (body, operations, quality, allowWebp) => {
-    const image = sharp(body);
-    let { mime } = await fileType(body);
+    let image = sharp(body);
 
     applyOperations(image, operations);
 
-    let buffer = await image.toBuffer();
-    const bufferWithImagemin = await withImagemin(buffer, quality);
+    const { mime } = await fileType(body);
 
-    if (!allowWebp) {
-        return {
-            buffer: bufferWithImagemin,
-            mime,
-        };
+    if (mime === 'image/jpeg') {
+        // Lets use Imagemin for optimization.
+        image = image.jpeg({
+            chromaSubsampling: '4:4:4',
+            quality: 100,
+        });
     }
 
-    const bufferWithWebp = await withWebp(buffer, quality);
-    const bufferWithImageminAndWebp = await withWebp(
-        bufferWithImagemin, quality
-    );
+    const rawBuffer = await image.toBuffer();
+    const buffer = await withImagemin(rawBuffer, quality);
 
-    buffer = [
-        bufferWithImagemin,
-        bufferWithWebp,
-        bufferWithImageminAndWebp,
-    ].reduce((min, current) => (
-        current.byteLength < min.byteLength ? current : min
-    ));
+    if (allowWebp) {
+        const webpBuffer = await withWebp(rawBuffer, quality);
 
-    if (buffer !== bufferWithImagemin) {
-        mime = 'image/webp';
+        if (webpBuffer.byteLength < buffer.byteLength) {
+            return {
+                buffer: webpBuffer,
+                mime: 'image/webp',
+            };
+        }
     }
 
     return {

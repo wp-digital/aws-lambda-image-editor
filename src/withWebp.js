@@ -8,6 +8,7 @@ module.exports = (body, quality) => {
 
     const webp = sharp(body).webp({
         quality,
+        smartSubsample: true,
     });
 
     return webp.toBuffer();

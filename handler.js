@@ -9,12 +9,12 @@ const s3 = new aws.S3({
 });
 
 module.exports.processor = async ({
+    allow_webp: allowWebp = false,
     bucket,
     filename,
     new_filename: newFilename,
     operations = [],
     quality = 82,
-    allow_webp: allowWebp = false,
     'return': output,
 }) => {
     const {
