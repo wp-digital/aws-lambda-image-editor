@@ -8,7 +8,7 @@ const withWebp = require('../withWebp');
 module.exports = async (body, operations, quality, allowWebp) => {
     let image = sharp(body);
 
-    applyOperations(image, operations);
+    await applyOperations(image, operations);
 
     const { mime } = await fileType(body);
 

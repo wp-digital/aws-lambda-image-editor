@@ -1,4 +1,6 @@
-module.exports = (image, operations) => {
+module.exports = async (image, operations) => {
+    const { width, height } = await image.metadata();
+
     for (const operation of operations) {
         switch (operation.action) {
             case 'resize': {
@@ -14,8 +16,8 @@ module.exports = (image, operations) => {
                 image.extract({
                     left: parseInt(operation.src_x, 10),
                     top: parseInt(operation.src_y, 10),
-                    width: parseInt(operation.src_width, 10),
-                    height: parseInt(operation.src_height, 10)
+                    width: Math.min(width, parseInt(operation.src_width, 10)),
+                    height: Math.min(height, parseInt(operation.src_height, 10))
                 });
 
                 if (operation.destination_width || operation.destination_height) {

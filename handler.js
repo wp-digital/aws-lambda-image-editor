@@ -17,7 +17,6 @@ module.exports.processor = async ({
     quality = 82,
     'return': output,
 }) => {
-    console.log(allowWebp, bucket, filename, newFilename, operations, quality, output);
     const {
         ACL: acl,
         Body: body,
