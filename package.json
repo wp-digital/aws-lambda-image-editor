@@ -21,7 +21,7 @@
     "is-svg": "^4.2.1",
     "lodash.has": "^4.5.2",
     "sharp": "^0.27.1",
-    "svgo": "^2.2.0"
+    "svgo": "^2.8.0"
   },
   "scripts": {},
   "devDependencies": {
