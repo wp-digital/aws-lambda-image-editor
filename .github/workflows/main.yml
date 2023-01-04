@@ -40,7 +40,7 @@ jobs:
 
       - name: Deploy production
         if: github.ref == 'refs/heads/master'
-        uses: serverless/github-action@master
+        uses: serverless/github-action@v2
         with:
           args: deploy --stage production --region ${{ secrets.AWS_REGION }}
         env:
