@@ -13,11 +13,14 @@ module.exports = async (image, operations) => {
             }
 
             case 'crop': {
+                const srcWidth = Math.min(width, parseInt(operation.src_width, 10));
+                const srcHeight = Math.min(height, parseInt(operation.src_height, 10));
+
                 image.extract({
-                    left: parseInt(operation.src_x, 10),
-                    top: parseInt(operation.src_y, 10),
-                    width: Math.min(width, parseInt(operation.src_width, 10)),
-                    height: Math.min(height, parseInt(operation.src_height, 10))
+                    left: Math.min(width - srcWidth, parseInt(operation.src_x, 10)),
+                    top: Math.min(height - srcHeight, parseInt(operation.src_y, 10)),
+                    width: srcWidth,
+                    height: srcHeight,
                 });
 
                 if (operation.destination_width || operation.destination_height) {
