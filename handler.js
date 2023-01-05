@@ -17,6 +17,7 @@ module.exports.processor = async ({
     quality = 82,
     'return': output,
 }) => {
+    console.log(bucket, filename, newFilename, operations, output);
     const {
         ACL: acl,
         Body: body,
